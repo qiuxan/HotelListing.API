@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelListing.API.Data;
 using HotelListing.API.Models.Country;
+using AutoMapper;
 
 namespace HotelListing.API.Controllers
 {
@@ -15,10 +16,12 @@ namespace HotelListing.API.Controllers
     public class CountriesController : ControllerBase
     {
         private readonly HotelListingDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CountriesController(HotelListingDbContext context)
+        public CountriesController(HotelListingDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Countries
@@ -78,11 +81,8 @@ namespace HotelListing.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Country>> PostCountry(CreateCountryDto CreateCountry)
         {
-            var country = new Country
-            {
-                Name = CreateCountry.Name,
-                ShortName = CreateCountry.ShortName
-            };
+          
+            var country = _mapper.Map<Country>(CreateCountry);
             _context.Countries.Add(country);
             await _context.SaveChangesAsync();
 
