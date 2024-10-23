@@ -1,8 +1,10 @@
-﻿namespace HotelListing.API.Contracts;
+﻿using HotelListing.API.Models.User;
+using Microsoft.AspNetCore.Identity;
+
+namespace HotelListing.API.Contracts;
 
 public interface IAuthManager
 {
-   // Task<bool> ValidateUser(ApiUserDTO userDTO);
-    Task<string> CreateToken();
+    Task<IEnumerable<IdentityError>> Register(ApiUserDto userDTO);
 
 }
