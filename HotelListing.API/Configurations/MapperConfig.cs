@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using HotelListing.API.Data;
 using HotelListing.API.Models.Country;
-using HotelListing.API.Models.Country.Hotel;
+using HotelListing.API.Models.Hotel;
 
 namespace HotelListing.API.Configurations;
 
