@@ -37,6 +37,7 @@ builder.Services.AddAutoMapper(typeof(MapperConfig));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
 builder.Services.AddScoped<IHotelsRebpository, HotelsRepository>();
+builder.Services.AddScoped<IAuthManager, AuthManager>();
 
 builder.Services.AddIdentityCore<ApiUser>()
     .AddRoles<IdentityRole>()
