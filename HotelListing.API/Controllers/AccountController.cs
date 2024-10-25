@@ -45,11 +45,12 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
 
-        var isValidUser = await _authManager.Login(loginDto);
-        if (!isValidUser)
+        var authResponse = await _authManager.Login(loginDto);
+
+        if (authResponse is null)
         {
             return Unauthorized("Invalid user credentials");
         }
-        return Ok();
+        return Ok(authResponse);
     }
 }
