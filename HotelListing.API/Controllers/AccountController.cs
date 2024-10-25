@@ -14,6 +14,7 @@ public class AccountController : ControllerBase
         _authManager = authManager;
     }
 
+    // POST api/account/register
     [HttpPost]
     [Route("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -24,7 +25,28 @@ public class AccountController : ControllerBase
         var errors = await _authManager.Register(apiUserDto);
 
         if (errors.Any())
-        { 
+        {
+            foreach (var error in errors)
+            {
+                ModelState.AddModelError(error.Code, error.Description);
+            }
+            return BadRequest(ModelState);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost]
+    [Route("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] ApiUserDto apiUserDto)
+    {
+        var errors = await _authManager.Register(apiUserDto);
+
+        if (errors.Any())
+        {
             foreach (var error in errors)
             {
                 ModelState.AddModelError(error.Code, error.Description);

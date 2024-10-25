@@ -16,6 +16,32 @@ public class AuthManager : IAuthManager
         _userManager = userManager;
     }
 
+    public async Task<bool> Login(LoginDto loginDto)
+    {
+        bool isValidCredentials = false;
+
+        try 
+        {
+            var _user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (_user is null)
+            {
+                return false;
+            }
+            isValidCredentials = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
+
+            if (!isValidCredentials)
+            {
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    
+        return isValidCredentials;
+
+    }
+
     public async Task<IEnumerable<IdentityError>> Register(ApiUserDto userDTO)
     {
         var user = _mapper.Map<ApiUser>(userDTO);
