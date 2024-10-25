@@ -36,24 +36,20 @@ public class AccountController : ControllerBase
         return Ok();
     }
 
+    // POST api/account/login
     [HttpPost]
-    [Route("register")]
+    [Route("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] ApiUserDto apiUserDto)
+    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
-        var errors = await _authManager.Register(apiUserDto);
 
-        if (errors.Any())
+        var isValidUser = await _authManager.Login(loginDto);
+        if (!isValidUser)
         {
-            foreach (var error in errors)
-            {
-                ModelState.AddModelError(error.Code, error.Description);
-            }
-            return BadRequest(ModelState);
+            return Unauthorized("Invalid user credentials");
         }
-
         return Ok();
     }
 }
