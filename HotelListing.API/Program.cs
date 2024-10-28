@@ -44,7 +44,9 @@ builder.Services.AddScoped<IAuthManager, AuthManager>();
 
 builder.Services.AddIdentityCore<ApiUser>()
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<HotelListingDbContext>();
+    .AddTokenProvider<DataProtectorTokenProvider<ApiUser>>("HetelListingApi")
+    .AddEntityFrameworkStores<HotelListingDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services
     .AddAuthentication(

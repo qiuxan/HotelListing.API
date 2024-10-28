@@ -53,4 +53,22 @@ public class AccountController : ControllerBase
         }
         return Ok(authResponse);
     }
+
+    // POST api/account/refreshtoken
+    [HttpPost]
+    [Route("refreshtoken")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> refreshtoken([FromBody] AuthResponseDto request)
+    {
+
+        var authResponse = await _authManager.VerifyRefreshToken(request);
+
+        if (authResponse is null)
+        {
+            return Unauthorized("Invalid user credentials");
+        }
+        return Ok(authResponse);
+    }
 }
