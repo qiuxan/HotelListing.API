@@ -15,16 +15,19 @@ public class AuthManager : IAuthManager
     private readonly IMapper _mapper;
     private readonly UserManager<ApiUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthManager> _logger;
+
     private ApiUser _user;
 
     private const string _refreshToken = "RefreshToken";
     private const string _loginProvider = "HetelListingApi";
 
-    public AuthManager(IMapper mapper, UserManager<ApiUser> userManager, IConfiguration configuration)
+    public AuthManager(IMapper mapper, UserManager<ApiUser> userManager, IConfiguration configuration, ILogger<AuthManager> logger)
     {
         _mapper = mapper;
         _userManager = userManager;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<string> CreateRefreshToken()
@@ -72,17 +75,19 @@ public class AuthManager : IAuthManager
 
     public async Task<AuthResponseDto> Login(LoginDto loginDto)
     {
+        _logger.LogInformation($"Looking for user with email{loginDto.Email}");
         bool isValidUser = false;
         _user = await _userManager.FindByEmailAsync(loginDto.Email);
         isValidUser = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
 
         if (_user is null || isValidUser == false)
         {
+            _logger.LogWarning($"User not found with email {loginDto.Email}");
             return null;
         }
 
         var token = await GenerateToken();
-
+        _logger.LogInformation($"Token generated for user with email {loginDto.Email} | tokem:{token}");
         return new AuthResponseDto 
         {
             Token = token,

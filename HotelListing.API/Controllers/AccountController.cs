@@ -2,6 +2,7 @@
 using HotelListing.API.Models.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 
 namespace HotelListing.API.Controllers;
 [Route("api/[controller]")]
@@ -9,9 +10,11 @@ namespace HotelListing.API.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly IAuthManager _authManager;
-    public AccountController(IAuthManager authManager)
+    private readonly ILogger<AccountController> _logger;
+    public AccountController(IAuthManager authManager, ILogger<AccountController> logger)
     {
         _authManager = authManager;
+        _logger = logger;
     }
 
     // POST api/account/register
@@ -22,18 +25,29 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] ApiUserDto apiUserDto)
     {
+        _logger.LogInformation($"Registration attempt for {apiUserDto.Email}");
+
         var errors = await _authManager.Register(apiUserDto);
 
-        if (errors.Any())
+        try
         {
-            foreach (var error in errors)
-            {
-                ModelState.AddModelError(error.Code, error.Description);
-            }
-            return BadRequest(ModelState);
-        }
+             if (errors.Any())
+             {
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+                return BadRequest(ModelState);
+             }
 
-        return Ok();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Something went wrong in the {nameof(Register)} -- User Registration attempt for {apiUserDto.Email}");
+            return Problem($"Someting Went Wrong in the {nameof(Register)}.Please contact support", statusCode:500);
+        }
+       
     }
 
     // POST api/account/login
@@ -44,14 +58,24 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
+        _logger.LogInformation($"Login attempt for {loginDto.Email}");
 
-        var authResponse = await _authManager.Login(loginDto);
-
-        if (authResponse is null)
+        try
         {
-            return Unauthorized("Invalid user credentials");
+            var authResponse = await _authManager.Login(loginDto);
+
+            if (authResponse is null)
+            {
+                return Unauthorized("Invalid user credentials");
+            }
+            return Ok(authResponse);
         }
-        return Ok(authResponse);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} -- User Login attempt for {loginDto.Email}");
+            return Problem($"Someting Went Wrong in the {nameof(Login)}.Please contact support", statusCode:500);
+        }
+
     }
 
     // POST api/account/refreshtoken
