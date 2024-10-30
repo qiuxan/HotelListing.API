@@ -29,25 +29,16 @@ public class AccountController : ControllerBase
 
         var errors = await _authManager.Register(apiUserDto);
 
-        try
+        if (errors.Any())
         {
-             if (errors.Any())
-             {
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                }
-                return BadRequest(ModelState);
-             }
+            foreach (var error in errors)
+            {
+                ModelState.AddModelError(error.Code, error.Description);
+            }
+            return BadRequest(ModelState);
+        }
 
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(Register)} -- User Registration attempt for {apiUserDto.Email}");
-            return Problem($"Someting Went Wrong in the {nameof(Register)}.Please contact support", statusCode:500);
-        }
-       
+        return Ok();
     }
 
     // POST api/account/login
@@ -59,22 +50,13 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         _logger.LogInformation($"Login attempt for {loginDto.Email}");
+        var authResponse = await _authManager.Login(loginDto);
 
-        try
+        if (authResponse is null)
         {
-            var authResponse = await _authManager.Login(loginDto);
-
-            if (authResponse is null)
-            {
-                return Unauthorized("Invalid user credentials");
-            }
-            return Ok(authResponse);
+            return Unauthorized("Invalid user credentials");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} -- User Login attempt for {loginDto.Email}");
-            return Problem($"Someting Went Wrong in the {nameof(Login)}.Please contact support", statusCode:500);
-        }
+        return Ok(authResponse);
 
     }
 
