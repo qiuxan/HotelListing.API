@@ -13,7 +13,7 @@ public interface IGenericRepository<T> where T : class
     Task<PageResult<TResult>> GetAllAsync<TResult>(QueryParameters queryParameters);
 
     Task<T> AddAsync(T entity);
-    Task<TResult> AddAsync<TResult, TSource>(TSource source);
+    Task<TResult> AddAsync<TSource, TResult>(TSource source);
 
     Task UpdateAsync(T entity);
     Task UpdateAsync<TSource>(int id, TSource source);

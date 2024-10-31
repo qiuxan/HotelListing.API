@@ -26,7 +26,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return entity;
     }
 
-    public async Task<TResult> AddAsync<TResult, TSource>(TSource source)
+    public async Task<TResult> AddAsync<TSource, TResult>(TSource source)
     {
         var entity = _mapper.Map<T>(source);
 
