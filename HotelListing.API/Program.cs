@@ -135,6 +135,8 @@ builder.Services.AddResponseCaching(options => {
 
 });
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddControllers().AddOData(options => 
 {
     options.Select().Filter().OrderBy();
@@ -149,6 +151,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapHealthChecks("/health");
 app.UseSerilogRequestLogging();
 
 app.UseMiddleware<ExceptionMiddleware>();
