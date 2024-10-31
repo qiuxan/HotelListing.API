@@ -4,11 +4,13 @@ using HotelListing.API.Data;
 using HotelListing.API.Middleware;
 using HotelListing.API.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -135,7 +137,8 @@ builder.Services.AddResponseCaching(options => {
 
 });
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<CustomHealthCheck>("Custom Health Check",failureStatus: HealthStatus.Degraded, tags: new[] {"custom"} );
 
 builder.Services.AddControllers().AddOData(options => 
 {
@@ -152,7 +155,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions 
+{ 
+    Predicate =  healthcheck => healthcheck.Tags.Contains("custom"),
+    ResultStatusCodes= 
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status500InternalServerError,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    },
+    ResponseWriter = async (context, report) => 
+    {
+        await context.Response.WriteAsync("Custom Health Check");
+    }
+});
+
+
+
+app.MapHealthChecks("/healthcheck");
+
 app.UseSerilogRequestLogging();
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -184,3 +205,17 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+class CustomHealthCheck : IHealthCheck
+{
+    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        var healthCheckResultHealthy = true;
+        if (healthCheckResultHealthy)
+        {
+            return Task.FromResult(HealthCheckResult.Healthy("The check indicates a healthy result."));
+        }
+        return Task.FromResult(HealthCheckResult.Unhealthy("The check indicates an unhealthy result."));
+    }
+}
